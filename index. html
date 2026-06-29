@@ -1,0 +1,252 @@
+```html
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Test by Abdul Rahman</title>
+    <!-- Tailwind CSS for Slick UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
+        body {
+            font-family: 'Fredoka', sans-serif;
+        }
+        /* Custom Shake Animation for wrong answers */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .shake {
+            animation: shake 0.3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-950 min-h-screen flex flex-col items-center justify-between p-4 md:p-6 text-white selection:bg-purple-500 selection:text-white">
+
+    <!-- Header / Branding -->
+    <header class="w-full max-w-md flex justify-between items-center py-2 px-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 mb-4">
+        <div>
+            <h1 class="text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-400">BRAIN TEST</h1>
+            <p class="text-[10px] text-slate-300 tracking-widest uppercase font-bold">By Abdul Rahman</p>
+        </div>
+        <div class="flex items-center space-x-2 bg-yellow-400/20 px-3 py-1.5 rounded-full border border-yellow-400/30">
+            <span class="text-amber-300 text-sm">💡</span>
+            <span id="score-val" class="font-bold text-yellow-300 text-sm">Level <span id="lvl-badge">1</span></span>
+        </div>
+    </header>
+
+    <!-- Main Game Box -->
+    <main class="w-full max-w-md bg-white/15 backdrop-blur-lg rounded-3xl p-6 md:p-8 shadow-2xl border border-white/20 flex-grow flex flex-col justify-between transition-all duration-300">
+        
+        <!-- Progress Bar container -->
+        <div>
+            <div class="flex justify-between items-center text-xs text-slate-300 font-bold mb-2">
+                <span id="progress-text">Level 1 of 60</span>
+                <span id="pct-text">1.6% Completed</span>
+            </div>
+            <div class="w-full bg-slate-950/40 h-3 rounded-full overflow-hidden p-[2px] border border-white/5">
+                <div id="progress-fill" class="bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 h-full rounded-full transition-all duration-500 ease-out" style="width: 1.66%"></div>
+            </div>
+        </div>
+
+        <!-- Question Section -->
+        <div class="my-8 text-center flex-grow flex flex-col justify-center items-center">
+            <!-- Icon/Visual Element -->
+            <div id="level-emoji" class="text-5xl mb-4 transform hover:scale-115 transition-transform duration-300">💡</div>
+            <h2 id="question-box" class="text-xl md:text-2xl font-bold leading-relaxed text-slate-100 px-2 drop-shadow">
+                Level 1: Katora par katora, beta baap se bhi gora. Kya hai wo?
+            </h2>
+        </div>
+
+        <!-- Input & Submission Area -->
+        <div id="input-section" class="space-y-4">
+            <div class="relative">
+                <input 
+                    type="text" 
+                    id="user-answer" 
+                    autocomplete="off"
+                    placeholder="Apna jawab likho ustad..." 
+                    class="w-full px-5 py-4 rounded-2xl bg-slate-950/50 border-2 border-white/10 text-white text-lg placeholder-slate-400 focus:outline-none focus:border-amber-400 transition-all text-center font-medium"
+                >
+            </div>
+            
+            <div class="flex space-x-3">
+                <button 
+                    onclick="checkCurrentAnswer()" 
+                    class="flex-grow bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-extrabold py-4 px-6 rounded-2xl transition-all active:scale-95 shadow-lg shadow-emerald-950/40 text-lg uppercase tracking-wide"
+                >
+                    Check Kar Miya
+                </button>
+                <button 
+                    onclick="toggleHint()" 
+                    class="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 font-extrabold px-5 rounded-2xl transition-all active:scale-95 flex items-center justify-center"
+                    title="Hint chahiye?"
+                >
+                    💡 Hint
+                </button>
+            </div>
+        </div>
+
+        <!-- Custom Hint Box (No Alerts) -->
+        <div id="hint-box" class="hidden mt-4 p-4 bg-amber-500/10 border border-amber-400/30 rounded-2xl text-amber-200 text-sm text-center animate-pulse">
+            <strong>Dimaag ka dahi hint:</strong> <span id="hint-content">Andar se ekdum safed rehta.</span>
+        </div>
+
+        <!-- Notification Message overlay (Success/Error feedback) -->
+        <div id="toast-msg" class="hidden mt-4 p-3 rounded-2xl text-center text-sm font-bold transition-all duration-300">
+            Kiraak ustad! Ekdum sahi jawab!
+        </div>
+
+    </main>
+
+    <!-- Footer / Education Theme -->
+    <footer class="w-full max-w-md text-center py-4 text-xs text-slate-400 font-medium">
+        <p>Asset banao, liability se bacho! 🏠💰 — Real Estate Masterclass</p>
+    </footer>
+
+    <!-- Game Over Screen Modal (Hidden by Default) -->
+    <div id="victory-modal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-sm w-full bg-gradient-to-b from-purple-900/50 to-slate-900/50 p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
+            <!-- Sparkles/Floating Icons -->
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl"></div>
+
+            <div class="text-7xl mb-6 animate-bounce">🏆</div>
+            <h1 class="text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-emerald-400">
+                Kiraak Ustad!
+            </h1>
+            <p class="text-lg text-emerald-300 font-bold mb-4">Saare 60 levels fode diye miya!</p>
+            <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                Tumhara dimag ab ekdum supercomputer ban gaya hai. "Rich Dad Poor Dad" ka logic tumhare khoon me daal diye hain. Real Estate se passive income kamao aur sote sote ameer bano!
+            </p>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl mb-6">
+                <span class="text-xs text-slate-400 block uppercase tracking-wider font-bold">Game Created By</span>
+                <span class="text-2xl font-black text-white">Abdul Rahman</span>
+            </div>
+            <button 
+                onclick="resetGame()" 
+                class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-950 font-black py-4 px-6 rounded-2xl transition-all active:scale-95 shadow-xl text-lg uppercase tracking-wider"
+            >
+                Phir Se Khelein?
+            </button>
+        </div>
+    </div>
+
+    <!-- SOUND EFFECTS USING AUDIO API -->
+    <script>
+        // Web Audio API helper for sound effects (so we don't depend on external sound files)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playWinSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        function playFailSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+
+    <!-- MAIN GAME LOGIC WITH 60 REAL LEVELS -->
+    <script>
+        const levels = [
+            { q: "Level 1: Katora par katora, beta baap se bhi gora. Kya hai wo?", a: ["nariyal", "coconut"], h: "Andar se ekdum safed rehta aur bahar se bahut kathin.", e: "🥥" },
+            { q: "Level 2: Ek mahal me 40 chor, sabka muh kala pichwada gora. Kya hai wo?", a: ["maachis", "matchbox"], h: "Aag lagane ke kaam aati hai miya.", e: "🔥" },
+            { q: "Level 3: Rich Dad Poor Dad ke hisaab se, jo tumhari jeb me chupke se paisa daale use kya bolte?", a: ["asset", "sampatti"], h: "Jo sote waqt bhi cash flow de. A se naam hai.", e: "🏠" },
+            { q: "Level 4: Ek janwar kaisa, jiski dum par paisa?", a: ["mor", "peacock"], h: "Baarish me ekdum mast naachta hai.", e: "🦚" },
+            { q: "Level 5: Hari thi mann bhari thi, laakh motiyo se jadi thi. Batao kya?", a: ["bhutta", "corn", "makkai", "makka"], h: "Baarish ke dino me isko sek kar khate hain.", e: "🌽" },
+            { q: "Level 6: Zameen aur building kharid kar rent pe dena, is dhande ko kya bolte hain?", a: ["real estate", "property"], h: "R se naam shuru hai, ameer log iske badshah hote hain.", e: "🏢" },
+            { q: "Level 7: Jise aage se banaya bhagwan ne, piche se insaan ne?", a: ["bailgadi", "bullock cart", "bail gadi"], h: "Khet me kisaan chalate hain.", e: "🐂" },
+            { q: "Level 8: Ek katori me katori, beta baap se bhi gori.", a: ["pyaz", "onion", "pyaaz"], h: "Isko kaato toh aankh me se paani nikalta.", e: "🧅" },
+            { q: "Level 9: Bina par ke udh jati, gale bandh kar udti.", a: ["patang", "kite"], h: "Sankranti ke din aasmaan pe ladate hain.", e: "🪁" },
+            { q: "Level 10: Jo din me soyi, aur raat me royi?", a: ["mombatti", "candle"], h: "Roshni deti hai aur khud pighalti hai.", e: "🕯️" },
+            
+            { q: "Level 11: Jo tumhari jeb se hamesha paisa nikalte rahe (Kiyosaki ke mutabiq)?", a: ["liability", "kharcha", "daayitva"], h: "L se naam hai. Jaise tumhari mehngi gaadi ya phone.", e: "💸" },
+            { q: "Level 12: Ek andha insaan kya dekh sakta hai?", a: ["andhera", "darkness", "kala"], h: "Aankh band karne pe jo dikhta hai.", e: "🕶️" },
+            { q: "Level 13: Wo kya hai jo hamesha upar jata hai par kabhi niche nahi aata?", a: ["umar", "age", "aayu"], h: "Har saal badhti hi jati hai ustad.", e: "🎂" },
+            { q: "Level 14: Aisi konsi chiz hai jise todne par aawaz nahi aati?", a: ["kasam", "promise", "vada", "waada"], h: "Log sarak kar ke tod dete hain bina shor ke.", e: "🤝" },
+            { q: "Level 15: Wo passive income jo sote waqt bhi property se aati hai?", a: ["rent", "kiraya", "bhada"], h: "Ghar ko kiraye pe dene se aata hai.", e: "🔑" },
+            { q: "Level 16: Wo konsi chiz hai jo dhone ke baad gandi ho jati hai?", a: ["paani", "water", "jal"], h: "Jisse tum saaf safai karte ho." },
+            { q: "Level 17: Table ki tokri me 5 seb hain, tumne 3 le liye. Tumhare paas kitne seb hain?", a: ["3", "teen", "three"], h: "Tumne kitne seb 'apne paas liye'?" },
+            { q: "Level 18: Number 8 ko aadha karne par kya bachta hai agar use kaata na jaye?", a: ["0", "zero", "shunya"], h: "Shape dekho, beech se partition socho." },
+            { q: "Level 19: Wo kya hai jiske paas shabd hain par aawaz nahi?", a: ["kitab", "kitaab", "book"], h: "Isme gyan bhara pada hai." },
+            { q: "Level 20: Aisa konsa room hai jisme khidki darwaza nahi hota?", a: ["mushroom"], h: "Ek tarah ki khane ki sabzi ya fangi." },
+
+            { q: "Level 21: Jisme dhaga bina sui ke jata hai?", a: ["joota", "shoe", "shoelace"], h: "Pairo me pehnne ki chiz hai ustad." },
+            { q: "Level 22: Kala rang meri shaan, sabko main deta gyan. Batao kya?", a: ["blackboard", "board", "slate"], h: "School me master ispe likhte hain." },
+            { q: "Level 23: Wo kya hai jo roshni me tumhare sath hoti hai aur andhere me gayab?", a: ["parchai", "shadow", "parchaayi"], h: "Tumhara khud ka saya." },
+            { q: "Level 24: Ek ped pe 10 kabootar the, shikari ne ek ko goli maari. Ped par kitne bache?", a: ["0", "zero", "ek bhi nahi"], h: "Goli ki dhuaandhaar aawaz sunkar baaki kya karenge?" },
+            { q: "Level 25: Aisi konsi jagah hai jahan 100 log jate hain aur 99 wapas aate hain?", a: ["shamshan", "kabristan", "graveyard", "shamshanghat"], h: "Insaan ka aakhri thikana." },
+            { q: "Level 26: Aisi konsi chiz hai jise aadmi chupa kar chalta hai aur aurat dikha kar?", a: ["purse", "wallet", "batua"], h: "Paise rakhne ka sasta ya mehnga bag." },
+            { q: "Level 27: Lal gaay lakkad khay, paani piye mar jaye. Batao kya?", a: ["aag", "fire", "agni"], h: "Iske paas jaoge toh jal jaoge." },
+            { q: "Level 28: Aisa konsa khazana hai jise jitna baato utna badhta hai?", a: ["gyan", "knowledge", "ilm", "vidya"], h: "Abdul Rahman ustad ke paas koot koot ke bhara hai." },
+            { q: "Level 29: Wo kya hai jo sardi ho ya garmi hamesha thanda rehta hai?", a: ["barf", "ice"], h: "Paani ka solid roop." },
+            { q: "Level 30: Property khareedne ke liye Bank se jo paisa udhaar lete hain use kya kehte hain?", a: ["loan", "mortgage", "karza", "debt"], h: "Har mahine iska EMI bharna padta hai." },
+
+            { q: "Level 31: Aisa konsa fal hai jo kacha hone par meetha aur pakne par khatta lagta hai?", a: ["sabar", "patience"], h: "Buzurg kehte hain iska fal boht meetha hota hai." },
+            { q: "Level 32: Bina bulaye aati hu, bina bataye jati hu, sabke mann ko bhati hu.", a: ["neend", "sleep"], h: "Bistar pe aate hi insaan so jata hai." },
+            { q: "Level 33: Ek aadmi barish me bina chhata bhig gaya, par uske baal gile nahi hue. Kyun?", a: ["takla", "ganja", "bald"], h: "Sir pe kuch tha hi nahi." },
+            { q: "Level 34: Konsa bank hai jahan paise nahi milte par jaan milti hai?", a: ["blood bank", "bloodbank"], h: "Hospital ke paas rehta hai, khoon donate karte wahan." },
+            { q: "Level 35: Wo konsi chiz hai jise aage badhane ke liye piche khichna padta hai?", a: ["teer", "arrow", "kaman"], h: "Dhanush ke sath chalta hai." },
+            { q: "Level 36: Aisa konsa darwaza hai jise hum hamesha kholte hain par andar nahi jate?", a: ["fridge", "refrigerator"], h: "Thanda paani aur khana rakhne ki jagah." },
+            { q: "Level 37: Wo kya hai jo dhoop me nahi sookh sakta?", a: ["paseena", "sweat", "pasina"], h: "Garmi me body se tapakta hai." },
+            { q: "Level 38: Aisi chiz jo tumhare paas jitni zyada hogi, tumhe utna hi kam dikhai dega?", a: ["andhera", "darkness", "dhund"], h: "Raat ka gehra rang." },
+            { q: "Level 39: Ramesh ke pita ke 3 bete hain. Ek ka naam Lava, dusre ka Kush, teesre ka kya?", a: ["ramesh"], h: "Sawal me hi uske baap ke bete ka naam hai." },
+            { q: "Level 40: Jab tum kisi ko apna ghar kiraye pe dete ho, toh har mahine kya milta hai?", a: ["rent", "kiraya", "bhada"], h: "Real Estate ka sabse bada asool." },
+
+            { q: "Level 41: Ek kamre me 2 maa aur 2 betiyan hain, par wahan sirf 3 log hain. Kaise? Wo kon hain?", a: ["nani maa beti", "nani, maa, beti", "grandmother", "three generations"], h: "Nani, unki beti aur poti." },
+            { q: "Level 42: Agar 2 murgiyan 2 din me 2 ande deti hain, to 10 murgiyan 10 din me kitne ande dengi?", a: ["50", "pachaas", "fifty"], h: "Dhyan se calculation karo, ek murgi do din me ek anda deti hai." },
+            { q: "Level 43: Maine ek chiz kharidi pehenne ke liye, par use main nahi pehan sakta. Kya hai?", a: ["kafan", "shroud"], h: "Insaan ke marne ke baad pehnate hain." },
+            { q: "Level 44: Saal ke kis mahine me 28 din hote hain?", a: ["sab", "har mahine", "sabhi", "12", "all"], h: "Har mahine me kam se kam 28 din toh hote hi hain!" },
+            { q: "Level 45: Konsa pakshi haath lagate hi mar jata hai?", a: ["titoni", "titauni", "titoni pakshi"], h: "T se naam hai, boht hi nazuk pakshi hai." },
+            { q: "Level 46: Tum usme jitne ched karoge, wo utni badi ho jayegi.", a: ["gaddha", "khai", "hole", "gadda"], h: "Zameen me khodte jao, toh bada ho jata." },
+            { q: "Level 47: Kis chiz ki parchai nahi hoti?", a: ["aag", "fire"], h: "Jo khud hi roshni ka srot hai." },
+            { q: "Level 48: Wo kya hai jiske daant hain par kaat nahi sakti?", a: ["kanghi", "comb", "kangi"], h: "Baal suljhane ke kaam aati hai." },
+            { q: "Level 49: Ek haathi paani me gir gaya, wo bahar kaise aayega?", a: ["geela", "bhig kar", "geela hoke", "gila"], h: "Sukha toh nahi aayega ustad." },
+            { q: "Level 50: Rich Dad kehte hain: Paise ke liye kaam mat karo, balke kis chiz ko apne liye kaam karao?", a: ["paisa", "money", "paise"], h: "Apne assets aur investment ka power." },
+
+            { q: "Level 51: Ek table pe 2 apple aur 3 orange hain. Tumne 1 orange kha liya. Table pe kya bacha?", a: ["chhilka", "chilka", "peel"], h: "Fruit khane ke baad bacha hua kachra." },
+            { q: "Level 52: Wo kya hai jise aap ek baar khakar wapas nahi khana chahte, par phir bhi khate hain?", a: ["dhokha", "dhoka", "betrayal"], h: "Zindagi me jab koi bharosa todta hai." },
+            { q: "Level 53: Aisa kya hai jiske aage aur piche dono taraf aankhen hoti hain? (Hint: Cards)", a: ["playing card", "taash", "tas", "cards"], h: "Taash ke patto me hota hai." },
+            { q: "Level 54: Din me soyega, raat me chalega, batao kya?", a: ["ullu", "owl", "chamgadar"], h: "Raat ka andhere wala parinda." },
+            { q: "Level 55: Ek gadi driver chala raha hai, usme gear bhi nahi hai aur tyre bhi nahi. Gadi kya hai?", a: ["train", "railgadi"], h: "Lohe ki patri pe chalti hai." },
+            { q: "Level 56: Hari dandi lal kaman, tauba tauba kare insaan. Kya hai wo?", a: ["mirchi", "chilli", "mirch"], h: "Salad ya tarka me padti hai, badi teekhi." },
+            { q: "Level 57: Aisa kaunsa kaam hai jo insaan marne ke baad bhi kar sakta hai?", a: ["angdaan", "organ donation", "donation"], h: "Apni aankh ya heart kisi ko dena." },
+            { q: "Level 58: Jisme aawaz hai par jaan nahi, khud chalti nahi par rasta dikhati hai.", a: ["ghadi", "clock", "watch"], h: "Tik tik karke waqt batati hai." },
+            { q: "Level 59: Ek chidiya aisi jiske dum pe paisa. Batao kya?", a: ["mor", "peacock"], h: "Mera pehla level ka hint yaad karo ustad." },
+            { q: "Level 60: Tum is game ke aakhri level pe ho. Batao is game ka creator kaun hai?", a: ["abdul rahman", "abdul", "rahman"], h: "Apna khud ka naam dhyan se likho ustad!" }
+        ];
+
+        let currentLevelIndex = 0;
+
+        // Load progress from localStorage if exists (to survive page refresh)
+        if(localStorage.getItem('abdul_brain_test_level')) {
+            currentLevelIndex = parseInt(localStorage.getItem('abdul_brain_test_level'));
+            if(currentLevelIndex >= levels.length) {
+                currentLevelIndex = 0; // reset if completed
+            }
+        }
+
+        const questionBox = document.getElementById('question-box');
+        const userAnsw
